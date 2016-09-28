@@ -1,4 +1,5 @@
 
+import sys
 import os
 import csv
 import urllib2
@@ -8,7 +9,7 @@ import time
 from blinky import wemo
 
 SWITCH = wemo('192.168.1.81')
-SCHEDULE_URL = 'http://rangers.nhl.com/schedule/full.csv'
+TEAM = 'New York Rangers'
 WINDOW = 60
 
 def main():
@@ -16,17 +17,21 @@ def main():
     ran = False
 
     # download and interate through NYR schedule
-    response = urllib2.urlopen(SCHEDULE_URL)
-    reader = csv.DictReader(response)
+    csv_file = open(sys.argv[1], 'r')
+    reader = csv.DictReader(csv_file)
 
     # get current unix timestamp to use later
     current_unix_time = int(time.time())
 
     for row in reader:
 
+        # only flash lights when nyr is playing
+        if row['Home'] != TEAM and row['Away'] != TEAM:
+            continue
+
         # parse gametime string into datetime object
-        time_string = ' '.join([row['START_DATE'], row['START_TIME_ET']])
-        start = datetime.datetime.strptime(time_string, '%m/%d/%Y %I:%M %p')
+        time_string = ' '.join([row['Date'], row['Time']])
+        start = datetime.datetime.strptime(time_string, '%Y-%m-%d %I:%M %p')
 
         # set the timezone to new york
         local = pytz.timezone('America/New_York')
