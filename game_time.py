@@ -1,81 +1,62 @@
 
-import requests
-import datetime
-import pytz
 import time
-from BeautifulSoup import BeautifulSoup
+import datetime
+import requests
+import json
+
 from blinky import wemo
 
 SWITCH = wemo('192.168.1.81')
-TEAM = 'rangers'
-START_YEAR = 2016
-TIMEZONE = 'America/New_York'
+TEAM = 'New York Rangers'
 WINDOW = 60
 
 def main():
+
     # did lights go on?
-    ran = None
+    ran = False
 
-    # load printable schedule from nhl.com
-    url = 'https://www.nhl.com/%s/schedule/%s/ET/print' % (TEAM, START_YEAR)
-    response = requests.get(url)
-    schedule = response.content
+    # load game data for the next month
+    url = 'https://statsapi.web.nhl.com/api/v1/schedule'
+    today = datetime.date.today().strftime('%Y-%m-%d')
+    future = datetime.date.today() + datetime.timedelta(30)
+    params = {
+        'startDate' : today,
+        'endDate'   : future
+    }
+    response = requests.get(url, params=params)
+    data = json.loads(response.content)
+    games = data['dates'][0]['games']
 
-    # parse HTML to get game times
-    games = []
-    soup = BeautifulSoup(schedule)
-    rows = soup.findAll('tr')
-    for row in rows:
-        html_data = {}
-        columns = row.findAll('td')
-        if len(columns) == 4:
-
-            # combine data from columns in each row
-            for column in columns:
-                html_data[column['class']] = column.string
-
-            # parse data from html to get startime
-            game_date = datetime.datetime.strptime(html_data['date-td'], '%b %d')
-            game_time = datetime.datetime.strptime(html_data['time-td'], '%I:%M %p')
-            if game_date.month > 9:
-                year = START_YEAR
-            else:
-                year = START_YEAR + 1
-            day = str(game_date.day).zfill(2)
-            month = str(game_date.month).zfill(2)
-            hour = str(game_time.hour).zfill(2)
-            minute = str(game_time.minute).zfill(2)
-            games.append("%s-%s-%s %s:%s" % (year, month, day, hour, minute))
-
-    # get current unix timestamp to use later
     current_unix_time = int(time.time())
 
+    # find if game just started    
     for game in games:
+        home_team = game['teams']['home']['team']['name']
+        away_team = game['teams']['away']['team']['name']
 
-        # parse human time to datetime object
-        start = datetime.datetime.strptime(game, '%Y-%m-%d %H:%M')
+        # only light 'em up for boys in blue
+        if home_team == TEAM or away_team == TEAM:
+            game_start = game['gameDate']
+            d = datetime.datetime.strptime(game_start, '%Y-%m-%dT%H:%M:%SZ')
 
-        # set the timezone to new york
-        local = pytz.timezone(TIMEZONE)
-        local_dt = local.localize(start, is_dst=None)
+            # compare start time to current time
+            start_unix_time = int(time.mktime(d.timetuple()))
+            time_diff = start_unix_time - current_unix_time
 
-        # convert from EST or EDT to UTC
-        utc_dt = local_dt.astimezone(pytz.utc)
+            # if game started in rolling window in case cron isn't on time
+            if time_diff >= (0 - WINDOW) and time_diff <= WINDOW:
+                ran = game
+                SWITCH.burst(15)
+                ran = True
+                break
 
-        # compare start time to current time
-        start_unix_time = int(utc_dt.strftime("%s"))
-        time_diff = start_unix_time - current_unix_time
-
-        # if game started in rolling window in case cron isn't on time
-        if time_diff >= (0 - WINDOW) and time_diff <= WINDOW:
-            ran = game
-            SWITCH.burst(15)
-            ran = True
-            break
-
-    # put some data into cron.log
+    # put some data into the log
     print len(games)
     print current_unix_time
+    print ''
+    print today
+    print future
+    print ''
     print ran
 
 if __name__ == '__main__':
