@@ -19,11 +19,7 @@ def main():
     url = 'https://statsapi.web.nhl.com/api/v1/schedule'
     today = datetime.date.today().strftime('%Y-%m-%d')
     future = datetime.date.today() + datetime.timedelta(30)
-    params = {
-        'startDate' : today,
-        'endDate'   : future
-    }
-    response = requests.get(url, params=params)
+    response = requests.get(url)
     data = json.loads(response.content)
     games = data['dates'][0]['games']
 
