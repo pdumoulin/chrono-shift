@@ -21,6 +21,9 @@ def main():
     future = datetime.date.today() + datetime.timedelta(30)
     response = requests.get(url)
     data = json.loads(response.content)
+    if data['totalGames'] == 0:
+        print('No games today!')
+        exit()
     games = data['dates'][0]['games']
 
     current_unix_time = int(time.time())
