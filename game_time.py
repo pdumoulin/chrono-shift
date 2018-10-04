@@ -17,15 +17,12 @@ def main():
 
     # load game data for the next month
     url = 'https://statsapi.web.nhl.com/api/v1/schedule'
-    today = datetime.date.today().strftime('%Y-%m-%d')
-    future = datetime.date.today() + datetime.timedelta(30)
     response = requests.get(url)
     data = json.loads(response.content)
     if data['totalGames'] == 0:
         print('No games today!')
         exit()
     games = data['dates'][0]['games']
-
     current_unix_time = int(time.time())
 
     # find if game just started    
@@ -52,10 +49,6 @@ def main():
     # put some data into the log
     print len(games)
     print current_unix_time
-    print ''
-    print today
-    print future
-    print ''
     print ran
 
 if __name__ == '__main__':
