@@ -23,7 +23,7 @@ def main():
         print('No games today!')
         exit()
     games = data['dates'][0]['games']
-    current_unix_time = int(time.time())
+    current_unix_time = int(time.mktime(datetime.datetime.utcnow().timetuple()))
 
     # find if game just started    
     for game in games:
@@ -38,6 +38,9 @@ def main():
             # compare start time to current time
             start_unix_time = int(time.mktime(d.timetuple()))
             time_diff = start_unix_time - current_unix_time
+            print(d)
+            print(time_diff)
+            print('')
 
             # if game started in rolling window in case cron isn't on time
             if time_diff >= (0 - WINDOW) and time_diff <= WINDOW:
