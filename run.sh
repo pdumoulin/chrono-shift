@@ -5,5 +5,5 @@
 
 export PYTHONPATH=$PYTHONPATH:/home/pi/blinky
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-python $DIR/game_time.py $@
+python3 $DIR/game_time.py $@
 
