@@ -1,16 +1,19 @@
+"""Turn on lights when hockey game starts."""
 
-import time
 import datetime
-import requests
+import time
 
 from blinky import Wemo
+
+import requests
 
 SWITCH = Wemo('192.168.1.81')
 TEAM = 'New York Rangers'
 WINDOW = 60
 
-def main():
 
+def main():
+    """Entrypoint of script."""
     # did lights go on?
     ran = False
 
@@ -22,9 +25,9 @@ def main():
         print('No games today!')
         exit()
     games = data['dates'][0]['games']
-    current_unix_time = int(time.mktime(datetime.datetime.utcnow().timetuple()))
+    current_unix_time = int(time.time())
 
-    # find if game just started    
+    # find if game just started
     for game in games:
         home_team = game['teams']['home']['team']['name']
         away_team = game['teams']['away']['team']['name']
@@ -52,6 +55,7 @@ def main():
     print(len(games))
     print(current_unix_time)
     print(ran)
+
 
 if __name__ == '__main__':
     main()
