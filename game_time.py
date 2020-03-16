@@ -27,6 +27,12 @@ def main():
     games = data['dates'][0]['games']
     current_unix_time = int(time.time())
 
+    # filter out postponed games, thanks COVID-19
+    games = [
+        x for x in games
+        if x.get('status', {}).get('detailedState', '') != 'Postponed'
+    ]
+
     # find if game just started
     for game in games:
         home_team = game['teams']['home']['team']['name']
