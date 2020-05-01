@@ -62,8 +62,7 @@ def get_schedule():
     response = requests.get(url)
     data = response.json()
     if data['totalGames'] == 0:
-        print('No games today!')
-        exit()
+        return []
     games = data['dates'][0]['games']
 
     # filter out postponed games, thanks COVID-19
