@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO - update me
+
 # crontab setup
 # */5 * * * * /home/pi/game-time/run.sh > /home/pi/game-time/cron.log 2>&1
 
