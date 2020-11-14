@@ -14,7 +14,7 @@ SCHEDULE = [
     tasks.SunsetTask(),
     tasks.BedtimeTask(23, 0)
 ]
-SCHEDULE_FILE = 'schedule.p'
+SCHEDULE_FILE = '/home/pi/chrono-shift/schedule.p'
 
 # localization settings
 tf = TimezoneFinder()
