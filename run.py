@@ -45,7 +45,7 @@ def main():
     # run recently scheduled events
     parser_execute = subparsers.add_parser(
         'execute',
-        help=f'run any pending task in recent time window of {config.WINDOW}s'
+        help=f'run all pending tasks in recent time window of {config.WINDOW}s'
     )
     parser_execute.set_defaults(func=run_execute)
 

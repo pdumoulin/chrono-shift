@@ -32,7 +32,7 @@ positional arguments:
     set                 reset and schedule tasks for next 24hrs based on config.TASKS
     list                view currently set task schedule
     clear               delete all scheduled tasks
-    execute             run any pending task in recent time window of 60s
+    execute             run all pending tasks in recent time window of 60s
 
 optional arguments:
   -h, --help            show this help message and exit
