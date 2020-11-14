@@ -142,7 +142,7 @@ def list_events(order=False):
 
 
 def _diff_now(event_datetime):
-    """Seconds between now and input (positive menas input in past)."""
+    """Seconds between now and input (positive means input in past)."""
     return int((datetime.datetime.now(config.TIMEZONE_UTC) - event_datetime).total_seconds())  # noqa:E501
 
 
