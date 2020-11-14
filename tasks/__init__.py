@@ -123,7 +123,7 @@ class NhlGameStartTask(BaseTask):
                 start_diff = int((game_start - datetime.datetime.now(config.TIMEZONE_UTC)).total_seconds())  # noqa:E501
 
                 # is game in next 24hr
-                if start_diff >= 0 and start_diff =< 86400:
+                if start_diff >= 0 and start_diff <= 86400:
                     game_times.append(game_start)
 
         return game_times
