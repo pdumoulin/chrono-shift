@@ -40,8 +40,10 @@ class BaseTask(object):
         # create UTC datetime of next time in future
         result = datetime.datetime.combine(
                     base_date,
-                    datetime.time(self.hour, self.minute)
-        ).astimezone(config.TIMEZONE_UTC)
+                    datetime.time(self.hour, self.minute),
+                    tzinfo=config.TIMEZONE_LOCAL
+        )
+        result = result.astimezone(config.TIMEZONE_UTC)
         return [result]
 
     def execute(self):

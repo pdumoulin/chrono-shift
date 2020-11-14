@@ -15,7 +15,7 @@ Assuming repo is cloned into `/home/pi/chrono-shift/`
 0 0 * * * /home/pi/chrono-shift/run.sh set > /home/pi/chrono-shift/cron-set.log 2>&1
 
 # run executor every minute
-* * * * * /home/pi/chrono-shift/run.sh execute> /home/pi/chrono-shift/cron-execute.log 2>&1
+* * * * * /home/pi/chrono-shift/run.sh execute > /home/pi/chrono-shift/cron-execute.log 2>&1
 ```
 :warning: `run.sh` updates python path, assuming `/home/pi/blinky/` is clone of [blinky](https://github.com/pdumoulin/blinky) repo
 
