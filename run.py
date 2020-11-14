@@ -8,27 +8,45 @@ from pathlib import Path
 
 import config
 
+import pytz
+
 
 def main():
     """Entrypoint."""
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
     # set schedule events for next 24hrs
-    parser_set = subparsers.add_parser('set')
+    parser_set = subparsers.add_parser(
+        'set',
+        help='reset and schedule tasks for next 24hrs based on config.TASKS'
+    )
     parser_set.set_defaults(func=run_set)
 
     # list scheduled events in local time orer
-    parser_list = subparsers.add_parser('list')
+    parser_list = subparsers.add_parser(
+        'list',
+        help='view currently set task schedule',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser_list.add_argument(
+        '--tz', type=str, required=False,
+        default=config.TIMEZONE_LOCAL,
+        help='timezone to display scheduled datetimes')
     parser_list.set_defaults(func=run_list)
 
     # clear all scheduled events
-    parser_clear = subparsers.add_parser('clear')
+    parser_clear = subparsers.add_parser(
+        'clear',
+        help='delete all scheduled tasks'
+    )
     parser_clear.set_defaults(func=run_clear)
 
-    # run recentlu scheduled events
-    parser_execute = subparsers.add_parser('execute')
+    # run recently scheduled events
+    parser_execute = subparsers.add_parser(
+        'execute',
+        help=f'run any pending task in recent time window of {config.WINDOW}s'
+    )
     parser_execute.set_defaults(func=run_execute)
 
     # initialize schedule file if not exits
@@ -38,6 +56,8 @@ def main():
 
     # read args and run corresponding func
     args = parser.parse_args()
+    if 'tz' in args and type(args.tz) == str:
+        args.tz = pytz.timezone(args.tz)
     if 'func' in args:
         args.func(args)
     else:
@@ -53,7 +73,7 @@ def run_list(args):
     """Run list command."""
     for e in list_events(True):
         print(
-            e['datetime'].astimezone(config.TIMEZONE_LOCAL),
+            e['datetime'].astimezone(args.tz),
             _diff_now(e['datetime']),
             type(e['task']),
             e['ran']
