@@ -12,10 +12,10 @@ Daily python task scheduler for localized timezones and dynamic events.
 Assuming repo is cloned into `/home/pi/chrono-shift/`
 ```
 # run scheduler at midnight system time
-0 0 * * * /home/pi/chrono-shift/run.sh set > /home/pi/chrono-shift/cron-set.logs 2>&1
+0 0 * * * /home/pi/chrono-shift/run.sh set > /home/pi/chrono-shift/cron-set.log 2>&1
 
 # run executor every minute
-* * * * * /home/pi/chrono-shift/run.sh execute> /home/pi/chrono-shift/cron-execute.logs 2>&1
+* * * * * /home/pi/chrono-shift/run.sh execute> /home/pi/chrono-shift/cron-execute.log 2>&1
 ```
 :warning: `run.sh` updates python path, assuming `/home/pi/blinky/` is clone of [blinky](https://github.com/pdumoulin/blinky) repo
 
