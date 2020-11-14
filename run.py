@@ -1,9 +1,9 @@
 """Main execution flow."""
 
+import argparse
 import datetime
 import os
 import pickle
-import sys
 from pathlib import Path
 
 import config
@@ -11,30 +11,56 @@ import config
 
 def main():
 
-    # TODO - some real argparse...
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    subparsers = parser.add_subparsers()
 
+    # set schedule events for next 24hrs
+    parser_set = subparsers.add_parser('set')
+    parser_set.set_defaults(func=run_set)
+
+    # list scheduled events in local time orer
+    parser_list = subparsers.add_parser('list')
+    parser_list.set_defaults(func=run_list)
+
+    # clear all scheduled events
+    parser_clear = subparsers.add_parser('clear')
+    parser_clear.set_defaults(func=run_clear)
+
+    # run recentlu scheduled events
+    parser_execute = subparsers.add_parser('execute')
+    parser_execute.set_defaults(func=run_execute)
+
+    # initialize schedule file if not exits
     if not os.path.isfile(config.SCHEDULE_FILE):
         Path(config.SCHEDULE_FILE).touch()
         reset_events()
 
-    arg = sys.argv[1]
-    if arg == 's':
-        schedule()
-    elif arg == 'l':
-        for e in list_events(True):
-            print(
-                e['datetime'].astimezone(config.TIMEZONE_LOCAL),
-                _diff_now(e['datetime']),
-                type(e['task']),
-                e['ran']
-            )
-    elif arg == 'e':
-        execute()
-    elif arg == 'c':
-        reset_events()
+    # read args and run corresponding func
+    args = parser.parse_args()
+    if 'func' in args:
+        args.func(args)
     else:
-        raise Exception('bad arg')
+        parser.print_help()
 
+
+def run_set(args):
+    schedule()
+
+def run_list(args):
+    for e in list_events(True):
+        print(
+            e['datetime'].astimezone(config.TIMEZONE_LOCAL),
+            _diff_now(e['datetime']),
+            type(e['task']),
+            e['ran']
+        )
+
+def run_clear(args):
+    reset_events()
+
+def run_execute(args):
+    execute()
 
 def schedule():
     reset_events()
@@ -52,7 +78,7 @@ def execute():
 
         # execute task if runtime was recent and in the past
         schedule_diff = _diff_now(event['datetime'])
-        if schedule_diff > 0 and schedule_diff < config.WINDOW:
+        if schedule_diff >= 0 and schedule_diff < config.WINDOW:
             event['task'].execute()
 
             # save task ran state
