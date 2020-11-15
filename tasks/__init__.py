@@ -29,12 +29,12 @@ class BaseTask(object):
             list: single item, datetime of next time
         """
         local_now = datetime.datetime.now(config.TIMEZONE_LOCAL)
-        today = datetime.date.today()
+        today = local_now.date()
         tomorrow = today + datetime.timedelta(days=1)
 
         # determine if time (local timezone) was today or tomorrow
         base_date = today
-        if local_now.hour > self.hour and local_now.minute > self.minute:
+        if local_now.hour >= self.hour and local_now.minute >= self.minute:
             base_date = tomorrow
 
         # create UTC datetime of next time in future
@@ -43,7 +43,6 @@ class BaseTask(object):
                     datetime.time(self.hour, self.minute),
                     tzinfo=config.TIMEZONE_LOCAL
         )
-        result = result.astimezone(config.TIMEZONE_UTC)
         return [result]
 
     def execute(self):

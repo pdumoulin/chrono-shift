@@ -93,9 +93,17 @@ def run_execute(args):
 def schedule():
     """Read task list and write future tasks to run."""
     reset_events()
+    events = []
     for task in config.SCHEDULE:
-        for event_datetime in task.future_executions():
-            append_event(event_datetime, task)
+        for d in task.future_executions():
+            if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
+                raise Exception(f'timezone unware datetime obj for {type(task)}')  # noqa:E501
+            events.append({
+                'datetime': d,
+                'task': task,
+                'ran': False
+            })
+    _save_data(events)
 
 
 def execute():
@@ -119,17 +127,6 @@ def execute():
 def reset_events():
     """Clear out all scheduled tasks."""
     _save_data([])
-
-
-def append_event(event_datetime, task):
-    """Add new scheduled task."""
-    scheduled_events = list_events()
-    scheduled_events.append({
-        'datetime': event_datetime,
-        'task': task,
-        'ran': False
-    })
-    _save_data(scheduled_events)
 
 
 def list_events(order=False):
