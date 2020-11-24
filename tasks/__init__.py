@@ -38,10 +38,11 @@ class BaseTask(object):
             base_date = tomorrow
 
         # create UTC datetime of next time in future
-        result = datetime.datetime.combine(
+        result = config.TIMEZONE_LOCAL.localize(
+            datetime.datetime.combine(
                     base_date,
-                    datetime.time(self.hour, self.minute),
-                    tzinfo=config.TIMEZONE_LOCAL
+                    datetime.time(self.hour, self.minute)
+            )
         )
         return [result]
 
