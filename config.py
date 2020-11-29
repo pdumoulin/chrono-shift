@@ -29,4 +29,5 @@ WINDOW = 60
 
 # switch settings
 BALCONY_IP = '192.168.1.198'
-GOAL_IP = '192.168.1.81'
+# GOAL_IP = '192.168.1.81'
+TREE_IP = '192.168.1.81'

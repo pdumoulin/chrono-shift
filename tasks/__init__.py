@@ -88,8 +88,10 @@ class SunsetTask(BaseTask):
 
     def execute(self):
         """Turn on balcony lights."""
-        switch = Wemo(config.BALCONY_IP)
-        switch.on()
+        switch_one = Wemo(config.BALCONY_IP)
+        switch_two = Wemo(config.TREE_IP)
+        switch_one.on()
+        switch_two.on()
 
 
 class NhlGameStartTask(BaseTask):
@@ -132,5 +134,6 @@ class NhlGameStartTask(BaseTask):
 
     def execute(self):
         """Burst goal lights."""
-        switch = Wemo(config.GOAL_IP)
-        switch.burst(15)
+        pass
+        # switch = Wemo(config.GOAL_IP)
+        # switch.burst(15)
