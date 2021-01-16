@@ -95,8 +95,6 @@ class SunsetTask(BaseTask):
 class NhlGameStartTask(BaseTask):
     """Run task on NHL game start."""
 
-    # TODO - verify task works when NHL season starts up!
-
     def __init__(self, team):
         """Initialize task object.
 
@@ -111,14 +109,21 @@ class NhlGameStartTask(BaseTask):
         Returns:
             list: datetimes of games in next 24hr
         """
+        # fetch 3 day window to prevent time zone problems
+        today = datetime.datetime.today().date()
+        yesterday = today + datetime.timedelta(days=-1)
+        tomorrow = today + datetime.timedelta(days=1)
+        games = get_nhl_schedule(str(yesterday), str(tomorrow))
+
+        # filter games based on team and start time
         game_times = []
-        games = get_nhl_schedule()
         for game in games:
 
             # is game for relevant team
-            home_team = game['teams']['home']['team']['name']
-            away_team = game['teams']['away']['team']['name']
-            if self.team == home_team or self.team == away_team:
+            home_team = game['teams']['home']['team']['name'].lower()
+            away_team = game['teams']['away']['team']['name'].lower()
+
+            if self.team.lower() == home_team or self.team == away_team:
 
                 # calculate seconds in future from now
                 game_start = datetime.datetime.strptime(game['gameDate'], '%Y-%m-%dT%H:%M:%SZ').astimezone(config.TIMEZONE_UTC)  # noqa:E501

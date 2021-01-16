@@ -11,8 +11,8 @@ from timezonefinder import TimezoneFinder
 # active tasks to schedule and store
 SCHEDULE = [
     tasks.NhlGameStartTask('New York Rangers'),
-    tasks.SunsetTask(),
-    tasks.BedtimeTask(23, 0)
+    # tasks.SunsetTask(),
+    # tasks.BedtimeTask(23, 0)
 ]
 SCHEDULE_FILE = '/home/pi/chrono-shift/schedule.p'
 
