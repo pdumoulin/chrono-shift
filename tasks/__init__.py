@@ -123,7 +123,7 @@ class NhlGameStartTask(BaseTask):
             home_team = game['teams']['home']['team']['name'].lower()
             away_team = game['teams']['away']['team']['name'].lower()
 
-            if self.team.lower() == home_team or self.team == away_team:
+            if self.team.lower() == home_team or self.team.lower() == away_team:  # noqa:E501
 
                 # calculate seconds in future from now
                 game_start = datetime.datetime.strptime(game['gameDate'], '%Y-%m-%dT%H:%M:%SZ').astimezone(config.TIMEZONE_UTC)  # noqa:E501

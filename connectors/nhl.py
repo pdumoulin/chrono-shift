@@ -17,10 +17,7 @@ def get_schedule(start_date, end_date):
         return []
 
     # combine all games from dates together
-    games = []
-    for date in data['dates']:
-        for game in date['games']:
-            games.append(game)
+    games = [game for date in data['dates'] for game in date['games']]
 
     # filter out postponed games, thanks COVID-19
     games = [
