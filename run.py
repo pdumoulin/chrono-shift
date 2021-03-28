@@ -126,7 +126,8 @@ def execute():
             event['ran'] = True
             _save_data(events)
 
-    if datetime.datetime.now(config.TIMEZONE_UTC) - data['timestamp'] >= config.RESET_INTERVAL:  # noqa:E501
+    since_last = datetime.datetime.now(config.TIMEZONE_UTC) - data['timestamp']
+    if since_last.seconds >= config.RESET_INTERVAL:
         schedule()
 
 
