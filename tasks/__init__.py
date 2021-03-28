@@ -51,6 +51,21 @@ class BaseTask(object):
         raise NotImplementedError('execute()')
 
 
+class FutureTask(BaseTask):
+    """Run task at relative time in future."""
+
+    def future_executions(self):
+        """Calculate time in future.
+
+        Returns:
+            list: single item, datetime of next time
+        """
+        return [
+            datetime.datetime.now(config.TIMEZONE_UTC) +
+            datetime.timedelta(hours=self.hour, minutes=self.minute)
+        ]
+
+
 class BedtimeTask(BaseTask):
     """Run task at bedtime."""
 

@@ -71,7 +71,9 @@ def run_set(args):
 
 def run_list(args):
     """Run list command."""
-    for e in list_events(True):
+    data = read_events()
+    print(data['timestamp'].astimezone(args.tz))
+    for e in data['events']:
         print(
             e['datetime'].astimezone(args.tz),
             _diff_now(e['datetime']),
@@ -109,7 +111,8 @@ def schedule():
 def execute():
     """Run task(s) if in time window after event runtime."""
     # get events from schedule, filter out already ran
-    events = [x for x in list_events() if not x['ran']]
+    data = read_events()
+    events = [x for x in data['events'] if not x['ran']]
 
     # examine event datetimes
     for event in events:
@@ -123,19 +126,21 @@ def execute():
             event['ran'] = True
             _save_data(events)
 
+    if datetime.datetime.now(config.TIMEZONE_UTC) - data['timestamp'] >= config.RESET_INTERVAL:  # noqa:E501
+        schedule()
+
 
 def reset_events():
     """Clear out all scheduled tasks."""
     _save_data([])
 
 
-def list_events(order=False):
+def read_events(order=False):
     """Output scheduled tasks."""
     with open(config.SCHEDULE_FILE, 'rb') as schedule:
-        scheduled_events = pickle.load(schedule)
-    if order:
-        return sorted(scheduled_events, key=lambda i: i['datetime'])
-    return scheduled_events
+        data = pickle.load(schedule)
+    data['events'] = sorted(data['events'], key=lambda i: i['datetime'])
+    return data
 
 
 def _diff_now(event_datetime):
@@ -146,7 +151,10 @@ def _diff_now(event_datetime):
 def _save_data(data):
     """Write object to schedule pickle file."""
     with open(config.SCHEDULE_FILE, 'wb') as schedule:
-        pickle.dump(data, schedule)
+        pickle.dump({
+            'events': data,
+            'timestamp': datetime.datetime.now(config.TIMEZONE_UTC)
+        }, schedule)
 
 
 if __name__ == '__main__':
