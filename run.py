@@ -127,7 +127,7 @@ def execute():
             _save_data(events)
 
     since_last = datetime.datetime.now(config.TIMEZONE_UTC) - data['timestamp']
-    if since_last.seconds >= config.RESET_INTERVAL:
+    if since_last.total_seconds() >= config.RESET_INTERVAL:
         schedule()
 
 
