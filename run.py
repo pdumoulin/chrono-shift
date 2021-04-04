@@ -4,6 +4,7 @@ import argparse
 import datetime
 import os
 import pickle
+import uuid
 from pathlib import Path
 
 import config
@@ -52,7 +53,7 @@ def main():
     # initialize schedule file if not exits
     if not os.path.isfile(config.SCHEDULE_FILE):
         Path(config.SCHEDULE_FILE).touch()
-        reset_events()
+        reset_events([])
 
     # read args and run corresponding func
     args = parser.parse_args()
@@ -71,20 +72,22 @@ def run_set(args):
 
 def run_list(args):
     """Run list command."""
-    data = read_events()
-    print(data['timestamp'].astimezone(args.tz))
-    for e in data['events']:
+    (events, timestamp) = _read_data()
+    events = sorted(events, key=lambda i: i['datetime'])
+    print(timestamp.astimezone(args.tz))
+    for e in events:
         print(
             e['datetime'].astimezone(args.tz),
             _diff_now(e['datetime']),
             type(e['task']),
-            e['ran']
+            e['ran'],
+            e['id']
         )
 
 
 def run_clear(args):
     """Run clear command."""
-    reset_events()
+    reset_events([])
 
 
 def run_execute(args):
@@ -94,7 +97,6 @@ def run_execute(args):
 
 def schedule():
     """Read task list and write future tasks to run."""
-    reset_events()
     events = []
     for task in config.SCHEDULE:
         for d in task.future_executions():
@@ -103,16 +105,17 @@ def schedule():
             events.append({
                 'datetime': d,
                 'task': task,
-                'ran': False
+                'ran': False,
+                'id': uuid.uuid4()
             })
-    _save_data(events)
+    reset_events(events)
 
 
 def execute():
     """Run task(s) if in time window after event runtime."""
     # get events from schedule, filter out already ran
-    data = read_events()
-    events = [x for x in data['events'] if not x['ran']]
+    (events, timestamp) = _read_data()
+    events = [x for x in events if not x['ran']]
 
     # examine event datetimes
     for event in events:
@@ -123,25 +126,27 @@ def execute():
             event['task'].execute()
 
             # save task ran state
-            event['ran'] = True
-            _save_data(events)
+            record_event_run(event)
 
-    since_last = datetime.datetime.now(config.TIMEZONE_UTC) - data['timestamp']
+    since_last = datetime.datetime.now(config.TIMEZONE_UTC) - timestamp
     if since_last.total_seconds() >= config.RESET_INTERVAL:
         schedule()
 
 
-def reset_events():
+def record_event_run(event):
+    """Mark that event has run."""
+    (events, timestamp) = _read_data()
+    for e in events:
+        if e['id'] == event['id']:
+            e['ran'] = True
+            _write_data(events, timestamp)
+            break
+
+
+def reset_events(events):
     """Clear out all scheduled tasks."""
-    _save_data([])
-
-
-def read_events(order=False):
-    """Output scheduled tasks."""
-    with open(config.SCHEDULE_FILE, 'rb') as schedule:
-        data = pickle.load(schedule)
-    data['events'] = sorted(data['events'], key=lambda i: i['datetime'])
-    return data
+    timestamp = datetime.datetime.now(config.TIMEZONE_UTC)
+    _write_data(events, timestamp)
 
 
 def _diff_now(event_datetime):
@@ -149,12 +154,18 @@ def _diff_now(event_datetime):
     return int((datetime.datetime.now(config.TIMEZONE_UTC) - event_datetime).total_seconds())  # noqa:E501
 
 
-def _save_data(data):
+def _read_data():
+    with open(config.SCHEDULE_FILE, 'rb') as schedule:
+        data = pickle.load(schedule)
+    return (data['events'], data['timestamp'])
+
+
+def _write_data(events, timestamp):
     """Write object to schedule pickle file."""
     with open(config.SCHEDULE_FILE, 'wb') as schedule:
         pickle.dump({
-            'events': data,
-            'timestamp': datetime.datetime.now(config.TIMEZONE_UTC)
+            'events': events,
+            'timestamp': timestamp
         }, schedule)
 
 
