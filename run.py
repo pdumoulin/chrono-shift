@@ -71,9 +71,9 @@ def run_set(args):
 
 def run_list(args):
     """Run list command."""
-    data = read_events()
-    print(data['timestamp'].astimezone(args.tz))
-    for e in data['events']:
+    (events, reset_timestamp) = read_events()
+    print(reset_timestamp.astimezone(args.tz))
+    for e in events:
         print(
             e['datetime'].astimezone(args.tz),
             _diff_now(e['datetime']),
@@ -105,14 +105,14 @@ def schedule():
                 'task': task,
                 'ran': False
             })
-    _save_data(events)
+    write_events(events, True)
 
 
 def execute():
     """Run task(s) if in time window after event runtime."""
     # get events from schedule, filter out already ran
-    data = read_events()
-    events = [x for x in data['events'] if not x['ran']]
+    (events, reset_timestamp) = read_events()
+    events = [x for x in events if not x['ran']]
 
     # examine event datetimes
     for event in events:
@@ -124,24 +124,32 @@ def execute():
 
             # save task ran state
             event['ran'] = True
-            _save_data(events)
+            write_events(events)
 
-    since_last = datetime.datetime.now(config.TIMEZONE_UTC) - data['timestamp']
+    since_last = datetime.datetime.now(config.TIMEZONE_UTC) - reset_timestamp
     if since_last.total_seconds() >= config.RESET_INTERVAL:
         schedule()
 
 
 def reset_events():
     """Clear out all scheduled tasks."""
-    _save_data([])
+    write_events([], True)
 
 
 def read_events(order=False):
     """Output scheduled tasks."""
-    with open(config.SCHEDULE_FILE, 'rb') as schedule:
-        data = pickle.load(schedule)
-    data['events'] = sorted(data['events'], key=lambda i: i['datetime'])
-    return data
+    (events, timestamp) = _read_data()
+    if order:
+        events = sorted(events, key=lambda i: i['datetime'])
+    return (events, timestamp)
+
+
+def write_events(events, reset_timestamp=False):
+    """Save events, optionally set timestamp of reset time."""
+    timestamp = datetime.datetime.now(config.TIMEZONE_UTC)
+    if not reset_timestamp:
+        (_, timestamp) = read_events()
+    _write_data(events, timestamp)
 
 
 def _diff_now(event_datetime):
@@ -149,12 +157,18 @@ def _diff_now(event_datetime):
     return int((datetime.datetime.now(config.TIMEZONE_UTC) - event_datetime).total_seconds())  # noqa:E501
 
 
-def _save_data(data):
+def _read_data():
+    with open(config.SCHEDULE_FILE, 'rb') as schedule:
+        data = pickle.load(schedule)
+    return (data['events'], data['timestamp'])
+
+
+def _write_data(events, timestamp):
     """Write object to schedule pickle file."""
     with open(config.SCHEDULE_FILE, 'wb') as schedule:
         pickle.dump({
-            'events': data,
-            'timestamp': datetime.datetime.now(config.TIMEZONE_UTC)
+            'events': events,
+            'timestamp': timestamp
         }, schedule)
 
 
