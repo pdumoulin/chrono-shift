@@ -70,8 +70,8 @@ class BedtimeTask(BaseTask):
     """Run task at bedtime."""
 
     def execute(self):
-        """Turn off balcony lights."""
-        switch = Wemo(config.BALCONY_IP)
+        """Turn off living room lights."""
+        switch = Wemo(config.LIVING_ROOM_IP)
         switch.off()
 
 
@@ -102,8 +102,8 @@ class SunsetTask(BaseTask):
         return [next_sunset]
 
     def execute(self):
-        """Turn on balcony lights."""
-        switch = Wemo(config.BALCONY_IP)
+        """Turn on living room lights."""
+        switch = Wemo(config.LIVING_ROOM_IP)
         switch.on()
 
 
