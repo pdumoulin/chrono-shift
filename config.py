@@ -11,6 +11,7 @@ from timezonefinder import TimezoneFinder
 # active tasks to schedule and store
 SCHEDULE = [
     tasks.NhlGameStartTask('New York Rangers'),
+    tasks.SunriseTask(),
     tasks.SunsetTask()
 ]
 SCHEDULE_FILE = '/home/pi/chrono-shift/schedule.p'
@@ -31,5 +32,6 @@ RESET_INTERVAL = 86400
 
 # switch settings
 PATIO_IP = '192.168.50.200'
+PORCH_IP = '192.168.50.242'
 LIVING_ROOM_IP = '192.168.50.196'
 GOAL_IP = '192.168.50.100'

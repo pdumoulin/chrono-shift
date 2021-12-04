@@ -75,6 +75,39 @@ class BedtimeTask(BaseTask):
         switch.off()
 
 
+class SunriseTask(BaseTask):
+    """Run task at sunrise."""
+
+    def __init__(self):
+        """Override base, no inputs needed."""
+        pass
+
+    def future_executions(self):
+        """Calculate first next sunset in future.
+
+        Returns:
+            list: single item, datetime of next sunrise
+
+        """
+        # get today's sunrise time
+        today = datetime.date.today()
+        today_sunrise = config.SUN.get_sunrise_time(today)
+
+        # get tomorrow's sunrise time
+        tomorrow = today + datetime.timedelta(days=1)
+        tomorrow_sunrise = config.SUN.get_local_sunrise_time(tomorrow)
+
+        # find next sunrise time
+        now = datetime.datetime.now(config.TIMEZONE_UTC)
+        next_sunrise = tomorrow_sunrise if now > today_sunrise else today_sunrise  # noqa:E501
+        return [next_sunrise]
+
+    def execute(self):
+        """Turn on porch lights."""
+        switch = Wemo(config.PORCH_IP)
+        switch.off()
+
+
 class SunsetTask(BaseTask):
     """Run task at sunset."""
 
@@ -92,7 +125,7 @@ class SunsetTask(BaseTask):
         today = datetime.date.today()
         today_sunset = config.SUN.get_sunset_time(today)
 
-        # get tomorrow's sun set time
+        # get tomorrow's sunset time
         tomorrow = today + datetime.timedelta(days=1)
         tomorrow_sunset = config.SUN.get_local_sunset_time(tomorrow)
 
@@ -102,9 +135,13 @@ class SunsetTask(BaseTask):
         return [next_sunset]
 
     def execute(self):
-        """Turn on living room lights."""
-        switch = Wemo(config.LIVING_ROOM_IP)
-        switch.on()
+        """Turn on lights."""
+        switches = [
+            Wemo(config.LIVING_ROOM_IP),
+            Wemo(config.PORCH_IP)
+        ]
+        for switch in switches:
+            switch.on()
 
 
 class NhlGameStartTask(BaseTask):
