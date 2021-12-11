@@ -24,9 +24,6 @@ TIMEZONE_LOCAL = pytz.timezone(tf.timezone_at(lng=LONGITUDE, lat=LATITUDE))
 TIMEZONE_UTC = pytz.timezone('UTC')
 SUN = Sun(LATITUDE, LONGITUDE)
 
-# allowed diff between task schedule time and execute time
-WINDOW = 60
-
 # how often to clear and build task list
 RESET_INTERVAL = 86400
 

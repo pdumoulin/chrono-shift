@@ -32,10 +32,10 @@ usage: run.py [-h] {set,list,clear,execute} ...
 
 positional arguments:
   {set,list,clear,execute}
-    set                 reset and schedule tasks for next 24hrs based on config.TASKS
+    set                 reset tasks by scheduling tasks for next 24hrs based on config.TASKS
     list                view currently set task schedule
     clear               delete all scheduled tasks
-    execute             run all pending tasks in recent time window of config.WINDOW seconds AND reset every config.RESET_INTERVAL seconds
+    execute             run all pending tasks AND reset tasks every config.RESET_INTERVAL seconds
 
 optional arguments:
   -h, --help            show this help message and exit

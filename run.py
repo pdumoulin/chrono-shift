@@ -20,7 +20,7 @@ def main():
     # set schedule events for next 24hrs
     parser_set = subparsers.add_parser(
         'set',
-        help='reset and schedule tasks for next 24hrs based on config.TASKS'
+        help='reset tasks by scheduling tasks for next 24hrs based on config.TASKS'
     )
     parser_set.set_defaults(func=run_set)
 
@@ -46,7 +46,7 @@ def main():
     # run recently scheduled events
     parser_execute = subparsers.add_parser(
         'execute',
-        help=f'run all pending tasks in recent time window of {config.WINDOW}s'
+        help='run all pending tasks AND reset tasks every config.RESET_INTERVAL seconds'
     )
     parser_execute.set_defaults(func=run_execute)
 
@@ -120,13 +120,13 @@ def execute():
     # examine event datetimes
     for event in events:
 
-        # execute task if runtime was recent and in the past
+        # execute task if schedule time was in the past
         schedule_diff = _diff_now(event['datetime'])
-        if schedule_diff >= 0 and schedule_diff < config.WINDOW:
-            event['task'].execute()
-
+        if schedule_diff >= 0:
             # save task ran state
             record_event_run(event)
+            event['task'].execute()
+
 
     since_last = datetime.datetime.now(config.TIMEZONE_UTC) - timestamp
     if since_last.total_seconds() >= config.RESET_INTERVAL:
