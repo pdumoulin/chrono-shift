@@ -54,9 +54,13 @@ class BaseTask(object):
 class SunriseTask(BaseTask):
     """Run task at sunrise."""
 
-    def __init__(self):
-        """Override base, no inputs needed."""
-        pass
+    def __init__(self, minute_offset=0):
+        """Initialize task.
+
+        Args:
+            minute_offset (int): minutes to move task schedule
+        """
+        self.offset = minute_offset
 
     def future_executions(self):
         """Calculate first next sunset in future.
@@ -76,7 +80,12 @@ class SunriseTask(BaseTask):
         # find next sunrise time
         now = datetime.datetime.now(config.TIMEZONE_UTC)
         next_sunrise = tomorrow_sunrise if now > today_sunrise else today_sunrise  # noqa:E501
-        return [next_sunrise]
+
+        # adjust time offset
+        offset_next_sunrise = \
+            next_sunrise + datetime.timedelta(minutes=self.offset)
+
+        return [offset_next_sunrise]
 
     def execute(self):
         """Turn on porch lights."""
@@ -91,9 +100,13 @@ class SunriseTask(BaseTask):
 class SunsetTask(BaseTask):
     """Run task at sunset."""
 
-    def __init__(self):
-        """Override base, no inputs needed."""
-        pass
+    def __init__(self, minute_offset=0):
+        """Initialize task.
+
+        Args:
+            minute_offset (int): minutes to move task schedule
+        """
+        self.offset = minute_offset
 
     def future_executions(self):
         """Calculate first next sunset in future.
@@ -112,7 +125,12 @@ class SunsetTask(BaseTask):
         # find next sunset time
         now = datetime.datetime.now(config.TIMEZONE_UTC)
         next_sunset = tomorrow_sunset if now > today_sunset else today_sunset
-        return [next_sunset]
+
+        # adjust time offset
+        offset_next_sunset = \
+            next_sunset + datetime.timedelta(minutes=self.offset)
+
+        return [offset_next_sunset]
 
     def execute(self):
         """Turn on lights."""

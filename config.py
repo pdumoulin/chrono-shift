@@ -12,7 +12,7 @@ from timezonefinder import TimezoneFinder
 SCHEDULE = [
     tasks.NhlGameStartTask('New York Rangers'),
     tasks.SunriseTask(),
-    tasks.SunsetTask()
+    tasks.SunsetTask(minute_offset=-45)
 ]
 SCHEDULE_FILE = '/home/pi/chrono-shift/schedule.p'
 
