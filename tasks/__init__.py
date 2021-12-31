@@ -51,15 +51,6 @@ class BaseTask(object):
         raise NotImplementedError('execute()')
 
 
-class BedtimeTask(BaseTask):
-    """Run task at bedtime."""
-
-    def execute(self):
-        """Turn off living room lights."""
-        switch = Wemo(config.LIVING_ROOM_IP)
-        switch.off()
-
-
 class SunriseTask(BaseTask):
     """Run task at sunrise."""
 
@@ -126,7 +117,8 @@ class SunsetTask(BaseTask):
     def execute(self):
         """Turn on lights."""
         switches = [
-            Wemo(config.LIVING_ROOM_IP),
+            Wemo(config.LIVING_ROOM_IP_1),
+            Wemo(config.LIVING_ROOM_IP_2),
             Wemo(config.LANDING_IP),
             Wemo(config.PORCH_IP)
         ]
