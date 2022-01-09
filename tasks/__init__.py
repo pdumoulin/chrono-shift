@@ -137,8 +137,7 @@ class SunsetTask(BaseTask):
         switches = [
             Wemo(config.LIVING_ROOM_IP_1),
             Wemo(config.LIVING_ROOM_IP_2),
-            Wemo(config.LANDING_IP),
-            Wemo(config.PORCH_IP)
+            Wemo(config.LANDING_IP)
         ]
         for switch in switches:
             switch.on()
