@@ -90,7 +90,6 @@ class SunriseTask(BaseTask):
     def execute(self):
         """Turn on porch lights."""
         switches = [
-            Wemo(config.PORCH_IP),
             Wemo(config.LANDING_IP)
         ]
         for switch in switches:
