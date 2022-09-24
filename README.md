@@ -20,7 +20,7 @@ Assuming repo is cloned into `/home/pi/chrono-shift/`
 # run executor every minute (will automatically build schedule every config.RESET_INTERVAL seconds)
 * * * * * /home/pi/chrono-shift/run.sh execute >> /home/pi/chrono-shift/cron-execute.log 2>&1
 ```
-:warning: `run.sh` updates python path, assuming `/home/pi/blinky/` is clone of [blinky](https://github.com/pdumoulin/blinky) repo
+:warning: `run.sh` updates python path, assuming `/home/pi/projects/blinky/` is clone of [blinky](https://github.com/pdumoulin/blinky) repo
 
 ### Add Tasks
 1. Subclass `BaseTask` in `tasks.__init__.py`
