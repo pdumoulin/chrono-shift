@@ -14,7 +14,7 @@ SCHEDULE = [
     tasks.SunriseTask(),
     tasks.SunsetTask(minute_offset=-45)
 ]
-SCHEDULE_FILE = '/home/pi/chrono-shift/schedule.p'
+SCHEDULE_FILE = '/home/pi/projects/chrono-shift/schedule.p'
 
 # localization settings
 tf = TimezoneFinder()
