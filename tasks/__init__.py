@@ -88,8 +88,9 @@ class SunriseTask(BaseTask):
         return [offset_next_sunrise]
 
     def execute(self):
-        """Turn on porch lights."""
+        """Turn off lights at sunrise."""
         switches = [
+            Wemo(config.PORCH_IP),
             Wemo(config.LANDING_IP)
         ]
         for switch in switches:
@@ -135,7 +136,8 @@ class SunsetTask(BaseTask):
         """Turn on lights."""
         switches = [
             Wemo(config.LIVING_ROOM_IP_1),
-            Wemo(config.LIVING_ROOM_IP_2)
+            Wemo(config.LIVING_ROOM_IP_2),
+            Wemo(config.PORCH_IP)
         ]
         for switch in switches:
             switch.on()
