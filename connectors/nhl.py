@@ -3,25 +3,10 @@
 import requests
 
 
-def get_schedule(start_date, end_date):
+def get_schedule(start_date, team_code):
     """Load game data from nhl.com."""
-    # load game data for date range (used to load entire month)
-    params = {
-        'startDate': start_date,
-        'endDate': end_date
-    }
-    url = 'https://statsapi.web.nhl.com/api/v1/schedule'
-    response = requests.get(url, params=params)
+    url = f'https://api-web.nhle.com/v1/club-schedule/{team_code}/week/{start_date}'  # noqa:E501
+    response = requests.get(url)
+    response.raise_for_status()
     data = response.json()
-    if data['totalGames'] == 0:
-        return []
-
-    # combine all games from dates together
-    games = [game for date in data['dates'] for game in date['games']]
-
-    # filter out postponed games, thanks COVID-19
-    games = [
-        x for x in games
-        if x.get('status', {}).get('detailedState', '') != 'Postponed'
-    ]
-    return games
+    return data['games']

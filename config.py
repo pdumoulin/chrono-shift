@@ -10,9 +10,9 @@ from timezonefinder import TimezoneFinder
 
 # active tasks to schedule and store
 SCHEDULE = [
-    tasks.NhlGameStartTask('New York Rangers'),
-    tasks.SunriseTask(),
-    tasks.SunsetTask(minute_offset=-45)
+    tasks.NhlGameStartTask('nyr'),
+    # tasks.SunriseTask(),
+    # tasks.SunsetTask(minute_offset=-45)
 ]
 SCHEDULE_FILE = '/home/pi/projects/chrono-shift/schedule.p'
 

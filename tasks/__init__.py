@@ -90,7 +90,6 @@ class SunriseTask(BaseTask):
     def execute(self):
         """Turn off lights at sunrise."""
         switches = [
-            Wemo(config.PORCH_IP),
             Wemo(config.LANDING_IP)
         ]
         for switch in switches:
@@ -137,7 +136,6 @@ class SunsetTask(BaseTask):
         switches = [
             Wemo(config.LIVING_ROOM_IP_1),
             Wemo(config.LIVING_ROOM_IP_2),
-            Wemo(config.PORCH_IP)
         ]
         for switch in switches:
             switch.on()
@@ -150,7 +148,7 @@ class NhlGameStartTask(BaseTask):
         """Initialize task object.
 
         Args:
-            team (str): team name to run task for
+            team (str): team 3-letter code to run task for
         """
         self.team = team
 
@@ -160,29 +158,20 @@ class NhlGameStartTask(BaseTask):
         Returns:
             list: datetimes of games in next 24hr
         """
-        # fetch 3 day window to prevent time zone problems
         today = datetime.datetime.today().date()
-        yesterday = today + datetime.timedelta(days=-1)
-        tomorrow = today + datetime.timedelta(days=1)
-        games = get_nhl_schedule(str(yesterday), str(tomorrow))
+        games = get_nhl_schedule(str(today), self.team)
 
         # filter games based on team and start time
         game_times = []
         for game in games:
 
-            # is game for relevant team
-            home_team = game['teams']['home']['team']['name'].lower()
-            away_team = game['teams']['away']['team']['name'].lower()
+            # calculate seconds in future from now
+            game_start = datetime.datetime.strptime(game['startTimeUTC'], '%Y-%m-%dT%H:%M:%SZ').astimezone(config.TIMEZONE_UTC)  # noqa:E501
+            start_diff = int((game_start - datetime.datetime.now(config.TIMEZONE_UTC)).total_seconds())  # noqa:E501
 
-            if self.team.lower() == home_team or self.team.lower() == away_team:  # noqa:E501
-
-                # calculate seconds in future from now
-                game_start = datetime.datetime.strptime(game['gameDate'], '%Y-%m-%dT%H:%M:%SZ').astimezone(config.TIMEZONE_UTC)  # noqa:E501
-                start_diff = int((game_start - datetime.datetime.now(config.TIMEZONE_UTC)).total_seconds())  # noqa:E501
-
-                # is game in next 24hr
-                if start_diff >= 0 and start_diff <= 86400:
-                    game_times.append(game_start)
+            # is game in next 24hr
+            if start_diff >= 0 and start_diff <= 86400:
+                game_times.append(game_start)
 
         return game_times
 
