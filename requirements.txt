@@ -1,4 +1,4 @@
 pytz==2019.3
-requests==2.31.0
+requests==2.32.3
 suntime==1.2.5
 timezonefinder==4.5.0
