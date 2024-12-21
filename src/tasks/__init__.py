@@ -1,18 +1,17 @@
 """Schedule-able tasks."""
 
 import datetime
+import time
 
-from blinky import Wemo
-
-import config
-
-from connectors.nhl import get_schedule as get_nhl_schedule
+from src import config
+from src.connectors import nhl
+from src.connectors import tarantula
 
 
 class BaseTask(object):
     """Basic task run at local time."""
 
-    def __init__(self, hour, minute):
+    def __init__(self, hour: int, minute: int):
         """Initialize task object.
 
         Args:
@@ -22,7 +21,7 @@ class BaseTask(object):
         self.hour = hour
         self.minute = minute
 
-    def future_executions(self):
+    def future_executions(self) -> list[datetime.datetime]:
         """Calculate first next time in future.
 
         Returns:
@@ -54,7 +53,7 @@ class BaseTask(object):
 class SunriseTask(BaseTask):
     """Run task at sunrise."""
 
-    def __init__(self, minute_offset=0):
+    def __init__(self, minute_offset: int = 0):
         """Initialize task.
 
         Args:
@@ -62,7 +61,7 @@ class SunriseTask(BaseTask):
         """
         self.offset = minute_offset
 
-    def future_executions(self):
+    def future_executions(self) -> list[datetime.datetime]:
         """Calculate first next sunset in future.
 
         Returns:
@@ -89,15 +88,16 @@ class SunriseTask(BaseTask):
 
     def execute(self):
         """Turn off lights at sunrise."""
-        switches = []
-        for switch in switches:
-            switch.off()
+        match_names = ['porch lights']
+        plugs = tarantula.list_plugs(name_filter=match_names)
+        for plug in plugs:
+            tarantula.update_plug(plug['id'], False)
 
 
 class SunsetTask(BaseTask):
     """Run task at sunset."""
 
-    def __init__(self, minute_offset=0):
+    def __init__(self, minute_offset: int = 0):
         """Initialize task.
 
         Args:
@@ -105,7 +105,7 @@ class SunsetTask(BaseTask):
         """
         self.offset = minute_offset
 
-    def future_executions(self):
+    def future_executions(self) -> list[datetime.datetime]:
         """Calculate first next sunset in future.
 
         Returns:
@@ -131,9 +131,10 @@ class SunsetTask(BaseTask):
 
     def execute(self):
         """Turn on lights."""
-        switches = []
-        for switch in switches:
-            switch.on()
+        match_names = ['christmas tree', 'porch lights']
+        plugs = tarantula.list_plugs(name_filter=match_names)
+        for plug in plugs:
+            tarantula.update_plug(plug['id'], True)
 
 
 class NhlGameStartTask(BaseTask):
@@ -147,14 +148,14 @@ class NhlGameStartTask(BaseTask):
         """
         self.team = team
 
-    def future_executions(self):
+    def future_executions(self) -> list[datetime.datetime]:
         """Calculate game time(s) in next 24hr.
 
         Returns:
             list: datetimes of games in next 24hr
         """
         today = datetime.datetime.today().date()
-        games = get_nhl_schedule(str(today), self.team)
+        games = nhl.get_schedule(str(today), self.team)
 
         # filter games based on team and start time
         game_times = []
@@ -172,5 +173,9 @@ class NhlGameStartTask(BaseTask):
 
     def execute(self):
         """Burst goal lights."""
-        switch = Wemo(config.GOAL_IP)
-        switch.burst(15)
+        plugs = tarantula.list_plugs(name_filter=['goal'])
+        for plug in plugs:
+            tarantula.update_plug(plug['id'], True)
+        time.sleep(15)
+        for plug in plugs:
+            tarantula.update_plug(plug['id'], False)
