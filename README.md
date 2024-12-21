@@ -1,3 +1,10 @@
+# chrono-shift
+
+Daily scheduling and running of dynamic tasks not suitable for static cron configuration.
+* NHL game starts by team
+* Sunrise by location
+* Sunset by location
+
 ### Deployment
 
 #### Configure Server
