@@ -1,0 +1,13 @@
+---
+services:
+
+  script:
+    platform: 'linux/amd64'
+    build:
+      context: .
+    env_file:
+      - path: ./.env
+        required: true
+    volumes:
+      - ./logs:/tmp/logs
+    restart: always
