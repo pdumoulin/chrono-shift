@@ -45,7 +45,7 @@ class BaseTask(object):
         )
         return [result]
 
-    def execute(self):
+    def execute(self) -> None:
         """Run function when schedule occurs."""
         raise NotImplementedError('execute()')
 
@@ -86,12 +86,13 @@ class SunriseTask(BaseTask):
 
         return [offset_next_sunrise]
 
-    def execute(self):
+    def execute(self) -> None:
         """Turn off lights at sunrise."""
-        match_names = ['porch lights']
-        plugs = tarantula.list_plugs(name_filter=match_names)
-        for plug in plugs:
-            tarantula.update_plug(plug['id'], False)
+        for plug in tarantula.list_plugs():
+            if 'porch lights' in plug['name'].lower():
+                tarantula.update_plug(plug['id'], False)
+            elif 'air conditioner' in plug['name'].lower():
+                tarantula.update_plug(plug['id'], True)
 
 
 class SunsetTask(BaseTask):
@@ -129,7 +130,7 @@ class SunsetTask(BaseTask):
 
         return [offset_next_sunset]
 
-    def execute(self):
+    def execute(self) -> None:
         """Turn on lights."""
         match_names = ['christmas tree', 'porch lights']
         plugs = tarantula.list_plugs(name_filter=match_names)
@@ -140,7 +141,7 @@ class SunsetTask(BaseTask):
 class NhlGameStartTask(BaseTask):
     """Run task on NHL game start."""
 
-    def __init__(self, team):
+    def __init__(self, team: str) -> None:
         """Initialize task object.
 
         Args:
@@ -171,7 +172,7 @@ class NhlGameStartTask(BaseTask):
 
         return game_times
 
-    def execute(self):
+    def execute(self) -> None:
         """Burst goal lights."""
         plugs = tarantula.list_plugs(name_filter=['goal'])
         for plug in plugs:

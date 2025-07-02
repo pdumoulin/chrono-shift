@@ -11,7 +11,7 @@ from src import tasks
 # active tasks to schedule and store
 SCHEDULE = [
     tasks.NhlGameStartTask('nyr'),
-    tasks.SunriseTask(minute_offset=45),
+    tasks.SunriseTask(minute_offset=30),
     tasks.SunsetTask(minute_offset=-45)
 ]
 

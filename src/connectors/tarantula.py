@@ -17,7 +17,7 @@ def update_plug(index: int, status: bool) -> None:
     response.raise_for_status()
 
 
-def list_plugs(name_filter=None) -> list[dict]:
+def list_plugs(name_filter: list[str] | None = None) -> list[dict]:
     """Get all available plugs."""
     url = f'{config.TARANTUNA_BASE_URL}/plugs'
     response = requests.get(url, headers=HEADERS)
