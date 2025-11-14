@@ -7,7 +7,6 @@ from datetime import timedelta
 from datetime import timezone
 
 from src import config
-from src.connectors import heartbeat
 
 
 def run():
@@ -16,7 +15,6 @@ def run():
     exit_code = 0
     executions = []
     try:
-
         # run script for 1 day
         stop_time = datetime.now(config.TIMEZONE_LOCAL) + timedelta(days=1)
         logging.info(f'Run Until: {stop_time}')
@@ -54,8 +52,7 @@ def run():
         logging.exception('Unexpected error')
         exit_code = 2
 
-    # exit and send heartbeat
-    heartbeat.send(exit_code)
+    # exit
     logging.info(f"Script End ({exit_code})")
     exit(exit_code)
 
