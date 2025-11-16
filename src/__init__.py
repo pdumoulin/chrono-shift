@@ -6,8 +6,15 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 
+import sentry_sdk
 from src import config
+from src import constants
 
+if config.ENVIRONMENT != constants.Environment.DEV or config.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=config.SENTRY_DSN,
+        environment=config.ENVIRONMENT.value
+    )
 
 def run():
     """Start script."""
@@ -40,16 +47,18 @@ def run():
             logging.info(f"Run Task: {type(execution['task']).__name__}")
             try:
                 execution['task'].execute()
-            except Exception:
+            except Exception as e:
                 logging.exception(f"Error Running Task: {type(execution['task']).__name__}")  # noqa:E501
+                sentry_sdk.capture_exception(e)
                 exit_code = 1
             else:
                 logging.info(f"Completed Task: {type(execution['task']).__name__}")  # noqa:E501
 
         # sleep until time to exit and auto-restart
         sleep_until(stop_time)
-    except Exception:
+    except Exception as e:
         logging.exception('Unexpected error')
+        sentry_sdk.capture_exception(e)
         exit_code = 2
 
     # exit

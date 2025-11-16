@@ -1,12 +1,19 @@
 """Configuration."""
 
+import os
+
 import pytz
 
 from suntime import Sun
 
 from timezonefinder import TimezoneFinder
 
+from src import constants
 from src import tasks
+
+
+ENVIRONMENT = constants.Environment(os.environ["ENVIRONMENT"])
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
 
 # active tasks to schedule and store
 SCHEDULE = [
