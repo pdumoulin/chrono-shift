@@ -15,11 +15,6 @@ Configuring for Ubuntu Server 24.04
 * [Configure docker](https://docs.docker.com/engine/install/linux-postinstall/) to run as non-root user
 * [Enable docker](https://docker-docs.uclv.cu/engine/install/linux-postinstall/#systemd) to run on start
 
-#### Setup Heartbeat
-
-* create `.env` file
-* set `HEARTBEAT_ID=` according to heartbeat configuration at [betterstack](https://betterstack.com/)
-
 #### Start Service
 
 ```bash
