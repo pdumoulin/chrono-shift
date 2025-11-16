@@ -4,8 +4,7 @@ import datetime
 import time
 
 from src import config
-from src.connectors import nhl
-from src.connectors import tarantula
+from src.connectors import nhl, tarantula
 
 
 class BaseTask(object):
@@ -38,16 +37,13 @@ class BaseTask(object):
 
         # create UTC datetime of next time in future
         result = config.TIMEZONE_LOCAL.localize(
-            datetime.datetime.combine(
-                    base_date,
-                    datetime.time(self.hour, self.minute)
-            )
+            datetime.datetime.combine(base_date, datetime.time(self.hour, self.minute))
         )
         return [result]
 
     def execute(self) -> None:
         """Run function when schedule occurs."""
-        raise NotImplementedError('execute()')
+        raise NotImplementedError("execute()")
 
 
 class SunriseTask(BaseTask):
@@ -78,21 +74,20 @@ class SunriseTask(BaseTask):
 
         # find next sunrise time
         now = datetime.datetime.now(config.TIMEZONE_UTC)
-        next_sunrise = tomorrow_sunrise if now > today_sunrise else today_sunrise  # noqa:E501
+        next_sunrise = tomorrow_sunrise if now > today_sunrise else today_sunrise
 
         # adjust time offset
-        offset_next_sunrise = \
-            next_sunrise + datetime.timedelta(minutes=self.offset)
+        offset_next_sunrise = next_sunrise + datetime.timedelta(minutes=self.offset)
 
         return [offset_next_sunrise]
 
     def execute(self) -> None:
         """Turn off lights at sunrise."""
         for plug in tarantula.list_plugs():
-            if 'porch lights' in plug['name'].lower():
-                tarantula.update_plug(plug['id'], False)
-            elif 'air conditioner' in plug['name'].lower():
-                tarantula.update_plug(plug['id'], True)
+            if "porch lights" in plug["name"].lower():
+                tarantula.update_plug(plug["id"], False)
+            elif "air conditioner" in plug["name"].lower():
+                tarantula.update_plug(plug["id"], True)
 
 
 class SunsetTask(BaseTask):
@@ -125,17 +120,16 @@ class SunsetTask(BaseTask):
         next_sunset = tomorrow_sunset if now > today_sunset else today_sunset
 
         # adjust time offset
-        offset_next_sunset = \
-            next_sunset + datetime.timedelta(minutes=self.offset)
+        offset_next_sunset = next_sunset + datetime.timedelta(minutes=self.offset)
 
         return [offset_next_sunset]
 
     def execute(self) -> None:
         """Turn on lights."""
-        match_names = ['christmas tree', 'porch lights']
+        match_names = ["christmas tree", "porch lights"]
         plugs = tarantula.list_plugs(name_filter=match_names)
         for plug in plugs:
-            tarantula.update_plug(plug['id'], True)
+            tarantula.update_plug(plug["id"], True)
 
 
 class NhlGameStartTask(BaseTask):
@@ -161,10 +155,15 @@ class NhlGameStartTask(BaseTask):
         # filter games based on team and start time
         game_times = []
         for game in games:
-
             # calculate seconds in future from now
-            game_start = datetime.datetime.strptime(game['startTimeUTC'], '%Y-%m-%dT%H:%M:%SZ').astimezone(config.TIMEZONE_UTC)  # noqa:E501
-            start_diff = int((game_start - datetime.datetime.now(config.TIMEZONE_UTC)).total_seconds())  # noqa:E501
+            game_start = datetime.datetime.strptime(
+                game["startTimeUTC"], "%Y-%m-%dT%H:%M:%SZ"
+            ).astimezone(config.TIMEZONE_UTC)
+            start_diff = int(
+                (
+                    game_start - datetime.datetime.now(config.TIMEZONE_UTC)
+                ).total_seconds()
+            )
 
             # is game in next 24hr
             if start_diff >= 0 and start_diff <= 86400:
@@ -174,9 +173,9 @@ class NhlGameStartTask(BaseTask):
 
     def execute(self) -> None:
         """Burst goal lights."""
-        plugs = tarantula.list_plugs(name_filter=['goal'])
+        plugs = tarantula.list_plugs(name_filter=["goal"])
         for plug in plugs:
-            tarantula.update_plug(plug['id'], True)
+            tarantula.update_plug(plug["id"], True)
         time.sleep(15)
         for plug in plugs:
-            tarantula.update_plug(plug['id'], False)
+            tarantula.update_plug(plug["id"], False)
