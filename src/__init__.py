@@ -3,18 +3,27 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import sentry_sdk
+from pydantic import BaseModel
 
 from src import config, constants
+from src.tasks import BaseTask
 
 if config.ENVIRONMENT != constants.Environment.DEV or config.SENTRY_DSN:
     sentry_sdk.init(dsn=config.SENTRY_DSN, environment=config.ENVIRONMENT.value)
 
 
-def run():
-    """Start script."""
+class TaskExecution(BaseModel):
+    dt: datetime
+    task: BaseTask
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+def run() -> None:
     logging.info("Script Start")
     exit_code = 0
-    executions = []
+    executions: list[TaskExecution] = []
     try:
         # run script for 1 day
         stop_time = datetime.now(config.TIMEZONE_LOCAL) + timedelta(days=1)
@@ -24,32 +33,32 @@ def run():
         for task in config.SCHEDULE:
             for dtime in task.future_executions():
                 executions.append(
-                    {"datetime": dtime.astimezone(config.TIMEZONE_LOCAL), "task": task}
+                    TaskExecution(dt=dtime.astimezone(config.TIMEZONE_LOCAL), task=task)
                 )
 
         # validate task times
-        for execution in sorted(executions, key=lambda e: e["datetime"]):
+        for execution in sorted(executions, key=lambda e: e.dt):
             logging.info(
-                f"Scheduled Task: {type(execution['task']).__name__} @ {execution['datetime']}"  # noqa:E501
+                f"Scheduled Task: {type(execution.task).__name__} @ {execution.dt}"
             )
-            execution_dt = execution["datetime"]
+            execution_dt = execution.dt
             if execution_dt > stop_time:
                 raise Exception("Task execution scheduled for after script stop time")
 
         # run tasks, pausing in between
-        for execution in sorted(executions, key=lambda e: e["datetime"]):
-            sleep_until(execution["datetime"])
-            logging.info(f"Run Task: {type(execution['task']).__name__}")
+        for execution in sorted(executions, key=lambda e: e.dt):
+            sleep_until(execution.dt)
+            logging.info(f"Run Task: {type(execution.task).__name__}")
             try:
-                execution["task"].execute()
+                execution.task.execute()
             except Exception as e:
                 logging.exception(
-                    f"Error Running Task: {type(execution['task']).__name__}"
+                    f"Error Running Task: {type(execution.task).__name__}"
                 )
                 sentry_sdk.capture_exception(e)
                 exit_code = 1
             else:
-                logging.info(f"Completed Task: {type(execution['task']).__name__}")
+                logging.info(f"Completed Task: {type(execution.task).__name__}")
 
         # sleep until time to exit and auto-restart
         sleep_until(stop_time)
@@ -63,8 +72,7 @@ def run():
     exit(exit_code)
 
 
-def sleep_until(target: datetime):
-    """Pause until specified datetime."""
+def sleep_until(target: datetime) -> None:
     now = datetime.now(timezone.utc)
     if target.tzinfo is None:
         raise Exception(f'target datetime "{target}" has no tzinfo"')

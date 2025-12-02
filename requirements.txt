@@ -1,3 +1,4 @@
+pydantic==2.12.5
 pytz==2019.3
 requests==2.32.4
 sentry-sdk==2.44.0

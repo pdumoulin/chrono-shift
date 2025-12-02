@@ -1,31 +1,17 @@
-"""Schedule-able tasks."""
-
 import datetime
 import time
+from abc import ABC, abstractmethod
 
 from src import config
 from src.connectors import nhl, tarantula
 
 
-class BaseTask(object):
-    """Basic task run at local time."""
-
-    def __init__(self, hour: int, minute: int):
-        """Initialize task object.
-
-        Args:
-            hour (int): hour to run (local time)
-            minute (int): minute to run (local time)
-        """
+class BaseTask(ABC):
+    def __init__(self, hour: int, minute: int) -> None:
         self.hour = hour
         self.minute = minute
 
     def future_executions(self) -> list[datetime.datetime]:
-        """Calculate first next time in future.
-
-        Returns:
-            list: single item, datetime of next time
-        """
         local_now = datetime.datetime.now(config.TIMEZONE_LOCAL)
         today = local_now.date()
         tomorrow = today + datetime.timedelta(days=1)
@@ -41,29 +27,32 @@ class BaseTask(object):
         )
         return [result]
 
+    @abstractmethod
     def execute(self) -> None:
-        """Run function when schedule occurs."""
-        raise NotImplementedError("execute()")
+        pass
 
 
-class SunriseTask(BaseTask):
-    """Run task at sunrise."""
+class PlugsTask(BaseTask):
+    def __init__(self, hour: int, minute: int, actions: list[tuple[str, bool]]):
+        self.actions = actions
+        super().__init__(hour, minute)
 
-    def __init__(self, minute_offset: int = 0):
-        """Initialize task.
+    def execute(self) -> None:
+        all_plugs = tarantula.list_plugs()
+        for action in self.actions:
+            action_name = action[0].lower()
+            action_bool = action[1]
+            plugs = [x for x in all_plugs if action_name in x["name"].lower()]
+            for plug in plugs:
+                tarantula.update_plug(plug["id"], action_bool)
 
-        Args:
-            minute_offset (int): minutes to move task schedule
-        """
+
+class SunriseTask(PlugsTask):
+    def __init__(self, actions: list[tuple[str, bool]], minute_offset: int = 0) -> None:
         self.offset = minute_offset
+        self.actions = actions
 
     def future_executions(self) -> list[datetime.datetime]:
-        """Calculate first next sunset in future.
-
-        Returns:
-            list: single item, datetime of next sunrise
-
-        """
         # get today's sunrise time
         today = datetime.date.today()
         today_sunrise = config.SUN.get_sunrise_time(today)
@@ -81,32 +70,13 @@ class SunriseTask(BaseTask):
 
         return [offset_next_sunrise]
 
-    def execute(self) -> None:
-        """Turn off lights at sunrise."""
-        for plug in tarantula.list_plugs():
-            if "porch lights" in plug["name"].lower():
-                tarantula.update_plug(plug["id"], False)
-            elif "air conditioner" in plug["name"].lower():
-                tarantula.update_plug(plug["id"], True)
 
-
-class SunsetTask(BaseTask):
-    """Run task at sunset."""
-
-    def __init__(self, minute_offset: int = 0):
-        """Initialize task.
-
-        Args:
-            minute_offset (int): minutes to move task schedule
-        """
+class SunsetTask(PlugsTask):
+    def __init__(self, actions: list[tuple[str, bool]], minute_offset: int = 0) -> None:
         self.offset = minute_offset
+        self.actions = actions
 
     def future_executions(self) -> list[datetime.datetime]:
-        """Calculate first next sunset in future.
-
-        Returns:
-            list: single item, datetime of next sunset
-        """
         # get today's sunset time
         today = datetime.date.today()
         today_sunset = config.SUN.get_sunset_time(today)
@@ -124,33 +94,14 @@ class SunsetTask(BaseTask):
 
         return [offset_next_sunset]
 
-    def execute(self) -> None:
-        """Turn on lights."""
-        match_names = ["christmas tree", "porch lights"]
-        plugs = tarantula.list_plugs(name_filter=match_names)
-        for plug in plugs:
-            tarantula.update_plug(plug["id"], True)
-
 
 class NhlGameStartTask(BaseTask):
-    """Run task on NHL game start."""
-
     def __init__(self, team: str) -> None:
-        """Initialize task object.
-
-        Args:
-            team (str): team 3-letter code to run task for
-        """
         self.team = team
 
     def future_executions(self) -> list[datetime.datetime]:
-        """Calculate game time(s) in next 24hr.
-
-        Returns:
-            list: datetimes of games in next 24hr
-        """
         today = datetime.datetime.today().date()
-        games = nhl.get_schedule(str(today), self.team)
+        games = nhl.get_schedule(today, self.team)
 
         # filter games based on team and start time
         game_times = []
@@ -172,7 +123,6 @@ class NhlGameStartTask(BaseTask):
         return game_times
 
     def execute(self) -> None:
-        """Burst goal lights."""
         plugs = tarantula.list_plugs(name_filter=["goal"])
         for plug in plugs:
             tarantula.update_plug(plug["id"], True)

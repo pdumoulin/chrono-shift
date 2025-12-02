@@ -1,5 +1,3 @@
-"""Home server interface."""
-
 import json
 
 import requests
@@ -10,7 +8,6 @@ HEADERS = {"content-type": "application/json"}
 
 
 def update_plug(index: int, status: bool) -> None:
-    """Update plug status."""
     url = f"{config.TARANTUNA_BASE_URL}/plugs/{index}"
     body = json.dumps({"status": status})
     response = requests.patch(url, data=body, headers=HEADERS)
@@ -18,7 +15,6 @@ def update_plug(index: int, status: bool) -> None:
 
 
 def list_plugs(name_filter: list[str] | None = None) -> list[dict]:
-    """Get all available plugs."""
     url = f"{config.TARANTUNA_BASE_URL}/plugs"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()

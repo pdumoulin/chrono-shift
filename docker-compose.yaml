@@ -5,6 +5,7 @@ services:
     platform: 'linux/amd64'
     build:
       context: .
+      target: script
     env_file:
       - path: ./.env
         required: true
@@ -13,3 +14,27 @@ services:
     volumes:
       - ./logs:/tmp/logs
     restart: always
+
+  hadolint:
+    image: hadolint/hadolint:latest-alpine
+    volumes:
+      - .:/tmp
+    command: hadolint /tmp/Dockerfile
+
+  lint-and-test:
+    platform: 'linux/amd64'
+    build:
+      context: .
+      target: lint_and_test
+    depends_on:
+      hadolint:
+        condition: service_completed_successfully
+
+  format:
+    platform: 'linux/amd64'
+    build:
+      context: .
+      target: format
+    volumes:
+      - ./src:/var/app/src
+      - ./entrypoint.py:/var/app/entrypoint.py
