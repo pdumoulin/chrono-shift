@@ -1,6 +1,6 @@
 pydantic==2.12.5
 pytz==2019.3
-requests==2.32.4
+requests==2.33.1
 sentry-sdk==2.44.0
 suntime==1.2.5
 timezonefinder==4.5.0
