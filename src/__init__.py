@@ -36,14 +36,16 @@ def run() -> None:
                     TaskExecution(dt=dtime.astimezone(config.TIMEZONE_LOCAL), task=task)
                 )
 
+        # filter out executions outside of script runtime
+        executions = [
+            x for x in executions if x.dt < stop_time
+        ]
+
         # validate task times
         for execution in sorted(executions, key=lambda e: e.dt):
             logging.info(
                 f"Scheduled Task: {type(execution.task).__name__} @ {execution.dt}"
             )
-            execution_dt = execution.dt
-            if execution_dt > stop_time:
-                raise Exception("Task execution scheduled for after script stop time")
 
         # run tasks, pausing in between
         for execution in sorted(executions, key=lambda e: e.dt):
